@@ -234,16 +234,17 @@ const drawGameOver = () => {
   enemies = [];
   gCanvasContext.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   if (isFirstGame) {
-    gCanvasContext.font = "70px Comic Sans MS";
+    gCanvasContext.font = "60px Comic Sans MS";
     gCanvasContext.fillStyle = "red";
     gCanvasContext.textAlign = "center";
     gCanvasContext.fillText("Click to play!", CANVAS_WIDTH/2, CANVAS_HEIGHT/2);
     isFirstGame = false;
   } else {
-    gCanvasContext.font = "70px Comic Sans MS";
+    gCanvasContext.font = "60px Comic Sans MS";
     gCanvasContext.fillStyle = "red";
     gCanvasContext.textAlign = "center";
-    gCanvasContext.fillText("Game Over. Click to play!", CANVAS_WIDTH/2, CANVAS_HEIGHT/2);
+    gCanvasContext.fillText("Game Over.", CANVAS_WIDTH/2, CANVAS_HEIGHT/2);
+    gCanvasContext.fillText("Click to play!", CANVAS_WIDTH/2, CANVAS_HEIGHT/2 + 80);
   }
 }
 
