@@ -204,6 +204,7 @@ const enemiesType = [Bat, Bee, Dragon];
 window.addEventListener('click', (e) => {
   if (isGameOver) {
     isGameOver = false;
+    timeToNextEnemy = 2000;
     animate(0);
   } else {
     const { x, y } = e;
@@ -268,6 +269,7 @@ const animate = (timestamp) => {
 
   for(let i = 0; i < enemies.length; i++) {
     if (enemies[i].deleted) {
+      enemies[i].sound.pause();
       enemies.splice(i, 1);
       i--;
     }
