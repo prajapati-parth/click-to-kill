@@ -218,7 +218,11 @@ window.addEventListener('click', (e) => {
         enemies.push(new Explosion(x, y, enemy.size));
 
         if (score % 5 === 0 && score !== 0) {
-          timeToNextEnemy -= 200;
+          if (timeToNextEnemy > 400) {
+            timeToNextEnemy -= 200;
+          } else {
+            enemy.directionX += 5;
+          }
         }
       }
     })
