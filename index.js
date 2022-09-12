@@ -17,6 +17,46 @@ let isGameOver = true;
 
 let score = 0;
 
+class Layer {
+  constructor(x, y, cropHeight, velocityX, imageWidth, imageHeight, image) {
+    this.x = x;
+    this.y = y;
+    this.imageWidth = imageWidth;
+    this.imageHeight = imageHeight;
+    this.cropHeight = cropHeight;
+    this.velocityX = velocityX;
+    this.image = image;
+
+    this.x2 = this.imageWidth;
+  }
+
+  draw() {
+    gCanvasContext.drawImage(
+      this.image,
+      0, this.cropHeight, this.imageWidth, this.imageHeight,
+      this.x, this.y, this.imageWidth, this.imageHeight
+    );
+    gCanvasContext.drawImage(
+      this.image,
+      0, this.cropHeight, this.imageWidth, this.imageHeight,
+      this.x2, this.y, this.imageWidth, this.imageHeight,
+    );
+  }
+
+  update() {
+    this.x -= this.velocityX;
+    this.x2 -= this.velocityX;
+
+    if (this.x + this.imageWidth < 0) {
+      this.x = this.x2 + this.imageWidth - this.velocityX;
+    }
+
+    if (this.x2 + this.imageWidth < 0) {
+      this.x2 = this.x + this.imageWidth - this.velocityX;
+    }
+  }
+}
+
 class Enemy {
   constructor(width, height, imageSource, imageCount, sizeFactor, animationSpeed, audioFile) {
     this.currentFrame = 0;
@@ -201,6 +241,15 @@ class Explosion {
 const enemiesType = [Bat, Bee, Dragon];
 // const enemiesType = [Dragon, Dragon, Dragon];
 
+const layers = [
+  new Layer(0, 0, 200, 0.1, 2048, 1546, cloudsBkgd),
+  new Layer(0, 0, 600, 0.2, 2048, 1546, hillBkgd),
+  new Layer(0, 0, -410, 0.5, 2048, 1546, bushesBkgd),
+  new Layer(0, 0, -260, 1, 2048, 1546, treesDistantBkgd),
+  new Layer(0, 0, 600, 2, 2048, 1546, treesBkgd),
+  new Layer(0, 0, 600, 4, 2048, 1546, groundBkgd),
+];
+
 window.addEventListener('click', (e) => {
   if (isGameOver) {
     isGameOver = false;
@@ -255,12 +304,20 @@ const drawScore = () => {
   }
 };
 
+const drawBackground = () => {
+  gCanvasContext.drawImage(
+    plainBkgd,
+    0, 0, CANVAS_WIDTH, CANVAS_HEIGHT
+  );
+};
+
 const animate = (timestamp) => {
   let deltaTime = timestamp - lastTimestamp;
   lastTimestamp = timestamp;
 
   gCanvasContext.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+  drawBackground();
   drawScore();
 
   timeToNextEnemyAccumulator += deltaTime;
@@ -280,8 +337,8 @@ const animate = (timestamp) => {
     }
   }
 
-  enemies.forEach(enemy => enemy.draw());
-  enemies.forEach(enemy => enemy.update(deltaTime));
+  [...layers, ...enemies].forEach(item => item.draw());
+  [...layers, ...enemies].forEach(item => item.update(deltaTime));
   
   if (isGameOver) {
     drawGameOver();

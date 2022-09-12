@@ -2,7 +2,7 @@ body {
   margin: 0;
 }
 
-.monster {
+.monster, .world {
   display: none;
 }
 
