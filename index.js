@@ -17,6 +17,75 @@ let isGameOver = true;
 
 let score = 0;
 
+class InputHandler {
+  constructor() {
+    this.activeKeys = [];
+
+    window.addEventListener('keydown', (e) => {
+      const { code } = e;
+
+      if (!this.activeKeys.includes(code)) {
+        this.activeKeys.push(code);
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      const { code } = e;
+
+      if (this.activeKeys.includes(code)) {
+        this.activeKeys.splice(
+          this.activeKeys.indexOf(code),
+          1
+        );
+      }
+    });
+  }
+}
+
+class CrossHair {
+  constructor() {
+    this.width = 30;
+    this.height = 30;
+
+    this.x = CANVAS_WIDTH/2 - this.width/2;
+    this.y = CANVAS_HEIGHT/2 - this.height/2;
+
+    this.image = crossHair;
+    this.speed = 5;
+  }
+
+  draw() {
+    gCanvasContext.drawImage(
+      this.image,
+      0, 0, 1184, 1184,
+      this.x, this.y, this.width, this.height
+    )
+  }
+
+  setInitialposition() {
+    this.x = CANVAS_WIDTH/2 - this.width/2;
+    this.y = CANVAS_HEIGHT/2 - this.height/2;
+  }
+
+  update(keys) {
+    if (keys.includes('ArrowUp') && this.y > this.speed) {
+      this.y -= this.speed;
+    }
+
+    if (keys.includes('ArrowDown') && this.y + this.height < CANVAS_HEIGHT - this.speed) {
+      this.y += this.speed;
+    }
+
+    if (keys.includes('ArrowLeft') && this.x > this.speed) {
+      this.x -= this.speed;
+    }
+
+    if (keys.includes('ArrowRight') && this.x + this.width < CANVAS_WIDTH - this.speed) {
+      this.x += this.speed;
+    }
+  } 
+}
+
 class Layer {
   constructor(x, y, cropHeight, velocityX, imageWidth, imageHeight, image) {
     this.x = x;
@@ -108,7 +177,7 @@ class Enemy {
       this.currentFrame = 0;
     }
 
-    if (this.x < 0) {
+    if ((this.x + this.width/this.size) < 0) {
       isGameOver = true;
     }
   }
@@ -241,6 +310,27 @@ class Explosion {
 const enemiesType = [Bat, Bee, Dragon];
 // const enemiesType = [Dragon, Dragon, Dragon];
 
+const handleEnemyClick = (x, y) => {
+  enemies.forEach(enemy => {
+    if (
+      x > enemy.x && x < (enemy.x + (enemy.width/enemy.size))
+      && y > enemy.y && y < (enemy.y + (enemy.height/enemy.size))
+    ) {
+      score++;
+      enemy.deleted = true;
+      enemies.push(new Explosion(x, y, enemy.size));
+
+      if (score % 5 === 0 && score !== 0) {
+        if (timeToNextEnemy > 400) {
+          timeToNextEnemy -= 200;
+        } else {
+          enemy.directionX += 5;
+        }
+      }
+    }
+  })
+}
+
 const layers = [
   new Layer(0, 0, 200, 0.1, 2048, 1546, cloudsBkgd),
   new Layer(0, 0, 600, 0.2, 2048, 1546, hillBkgd),
@@ -250,33 +340,36 @@ const layers = [
   new Layer(0, 0, 600, 4, 2048, 1546, groundBkgd),
 ];
 
+let gunPointer = null;
+let inputHandler = null;
+
+var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+if (!isMobile) {
+  gunPointer = new CrossHair();
+  inputHandler = new InputHandler();
+}
+
 window.addEventListener('click', (e) => {
   if (isGameOver) {
+    gunPointer.setInitialposition();
     isGameOver = false;
     timeToNextEnemy = 2000;
     animate(0);
   } else {
     const { x, y } = e;
-    enemies.forEach(enemy => {
-      if (
-        x > enemy.x && x < (enemy.x + (enemy.width/enemy.size))
-        && y > enemy.y && y < (enemy.y + (enemy.height/enemy.size))
-      ) {
-        score++;
-        enemy.deleted = true;
-        enemies.push(new Explosion(x, y, enemy.size));
-
-        if (score % 5 === 0 && score !== 0) {
-          if (timeToNextEnemy > 400) {
-            timeToNextEnemy -= 200;
-          } else {
-            enemy.directionX += 5;
-          }
-        }
-      }
-    })
+    handleEnemyClick(x, y);
   }
 });
+
+if (!isMobile) {
+  window.addEventListener('keydown', (e) => {
+    const { code } = e;
+
+    if (code === 'Space') {
+      handleEnemyClick(gunPointer.x + gunPointer.width * 0.5, gunPointer.y + gunPointer.height * 0.5)
+    }
+  });
+}
 
 const drawGameOver = () => {
   score = 0;
@@ -339,6 +432,11 @@ const animate = (timestamp) => {
 
   [...layers, ...enemies].forEach(item => item.draw());
   [...layers, ...enemies].forEach(item => item.update(deltaTime));
+
+  if (gunPointer) {
+    gunPointer.draw();
+    gunPointer.update(inputHandler.activeKeys);
+  }
   
   if (isGameOver) {
     drawGameOver();
