@@ -351,7 +351,7 @@ if (!isMobile) {
 
 window.addEventListener('click', (e) => {
   if (isGameOver) {
-    gunPointer.setInitialposition();
+    if (gunPointer) gunPointer.setInitialposition();
     isGameOver = false;
     timeToNextEnemy = 2000;
     animate(0);
